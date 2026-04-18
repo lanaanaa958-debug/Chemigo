@@ -1,0 +1,252 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Heart, Coins, Search, Shield, Zap, Flame, Play, Store, Home, Award, CheckCircle2, XCircle, Volume2, VolumeX, MousePointerClick } from 'lucide-react';
+
+// --- DATA RINGKAS ---
+const ELEMENTS = [
+  { n: 1, s: 'H', nm: 'Hidrogen', c: 'nm', r: 1, cl: 1 }, { n: 2, s: 'He', nm: 'Helium', c: 'nb', r: 1, cl: 18 },
+  { n: 3, s: 'Li', nm: 'Litium', c: 'al', r: 2, cl: 1 }, { n: 4, s: 'Be', nm: 'Berilium', c: 'ae', r: 2, cl: 2 },
+  { n: 5, s: 'B', nm: 'Boron', c: 'mt', r: 2, cl: 13 }, { n: 6, s: 'C', nm: 'Karbon', c: 'nm', r: 2, cl: 14 },
+  { n: 7, s: 'N', nm: 'Nitrogen', c: 'nm', r: 2, cl: 15 }, { n: 8, s: 'O', nm: 'Oksigen', c: 'nm', r: 2, cl: 16 },
+  { n: 9, s: 'F', nm: 'Fluorin', c: 'hl', r: 2, cl: 17 }, { n: 10, s: 'Ne', nm: 'Neon', c: 'nb', r: 2, cl: 18 },
+  { n: 11, s: 'Na', nm: 'Natrium', c: 'al', r: 3, cl: 1 }, { n: 12, s: 'Mg', nm: 'Magnesium', c: 'ae', r: 3, cl: 2 },
+  { n: 13, s: 'Al', nm: 'Aluminium', c: 'pt', r: 3, cl: 13 }, { n: 14, s: 'Si', nm: 'Silikon', c: 'mt', r: 3, cl: 14 },
+  { n: 15, s: 'P', nm: 'Fosfor', c: 'nm', r: 3, cl: 15 }, { n: 16, s: 'S', nm: 'Belerang', c: 'nm', r: 3, cl: 16 },
+  { n: 17, s: 'Cl', nm: 'Klorin', c: 'hl', r: 3, cl: 17 }, { n: 18, s: 'Ar', nm: 'Argon', c: 'nb', r: 3, cl: 18 },
+  { n: 19, s: 'K', nm: 'Kalium', c: 'al', r: 4, cl: 1 }, { n: 20, s: 'Ca', nm: 'Kalsium', c: 'ae', r: 4, cl: 2 },
+  { n: 21, s: 'Sc', nm: 'Skandium', c: 'tr', r: 4, cl: 3 }, { n: 22, s: 'Ti', nm: 'Titanium', c: 'tr', r: 4, cl: 4 },
+  { n: 23, s: 'V', nm: 'Vanadium', c: 'tr', r: 4, cl: 5 }, { n: 24, s: 'Cr', nm: 'Kromium', c: 'tr', r: 4, cl: 6 },
+  { n: 25, s: 'Mn', nm: 'Mangan', c: 'tr', r: 4, cl: 7 }, { n: 26, s: 'Fe', nm: 'Besi', c: 'tr', r: 4, cl: 8 },
+  { n: 27, s: 'Co', nm: 'Kobal', c: 'tr', r: 4, cl: 9 }, { n: 28, s: 'Ni', nm: 'Nikel', c: 'tr', r: 4, cl: 10 },
+  { n: 29, s: 'Cu', nm: 'Tembaga', c: 'tr', r: 4, cl: 11 }, { n: 30, s: 'Zn', nm: 'Seng', c: 'tr', r: 4, cl: 12 },
+  { n: 31, s: 'Ga', nm: 'Galium', c: 'pt', r: 4, cl: 13 }, { n: 32, s: 'Ge', nm: 'Germanium', c: 'mt', r: 4, cl: 14 },
+  { n: 33, s: 'As', nm: 'Arsenik', c: 'mt', r: 4, cl: 15 }, { n: 34, s: 'Se', nm: 'Selenium', c: 'nm', r: 4, cl: 16 },
+  { n: 35, s: 'Br', nm: 'Bromin', c: 'hl', r: 4, cl: 17 }, { n: 36, s: 'Kr', nm: 'Kripton', c: 'nb', r: 4, cl: 18 },
+];
+const COLORS = { nm: 'bg-blue-400', nb: 'bg-purple-400', al: 'bg-red-400', ae: 'bg-orange-400', mt: 'bg-green-400', hl: 'bg-indigo-400', pt: 'bg-teal-400', tr: 'bg-yellow-400' };
+const SOUNDS = {
+  bgm: 'https://codeskulptor-demos.commondatastorage.googleapis.com/pang/paza-moduless.mp3',
+  correct: 'https://actions.google.com/sounds/v1/cartoon/cartoon_cowbell.ogg',
+  wrong: 'https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg',
+  click: 'https://actions.google.com/sounds/v1/ui/button_click.ogg',
+  vic: 'https://codeskulptor-demos.commondatastorage.googleapis.com/commando/pass.mp3',
+  go: 'https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg',
+  coin: 'https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg'
+};
+
+// --- STYLES REUSABLE ---
+const btnSty = "w-full flex items-center justify-center space-x-2 font-bold py-4 px-6 rounded-2xl shadow-lg transform transition active:scale-95 border border-white/20";
+const cardSty = "backdrop-blur-md p-5 rounded-2xl border border-white/20 flex flex-col justify-between";
+
+export default function App() {
+  const [st, setSt] = useState('start'); // start, menu, playing, shop, gameover, victory
+  const [data, setData] = useState({ c: 0, l: 3, r: 1 }); // coins, lives, round
+  const [game, setGame] = useState({ hid: [], tar: null, opt: [], fb: null, shk: false }); // hidden, target, options, feedback, shake
+  const [inv, setInv] = useState({ p: 0, s: 0, f: 0, b: 0 }); // peek, shield, fifty, booster
+  const [eff, setEff] = useState({ s: false, b: false, p: false }); // active shield, booster, peek
+  const [audioEn, setAudioEn] = useState(true);
+  
+  const audRefs = {
+    bgm: useRef(null), cor: useRef(null), wrg: useRef(null), clk: useRef(null), vic: useRef(null), go: useRef(null), coin: useRef(null)
+  };
+
+  useEffect(() => {
+    audRefs.bgm.current = new Audio(SOUNDS.bgm); audRefs.bgm.current.loop = true; audRefs.bgm.current.volume = 0.25;
+    audRefs.cor.current = new Audio(SOUNDS.correct); audRefs.cor.current.volume = 0.8;
+    audRefs.wrg.current = new Audio(SOUNDS.wrong); audRefs.wrg.current.volume = 1.0;
+    audRefs.clk.current = new Audio(SOUNDS.click); audRefs.clk.current.volume = 0.6;
+    audRefs.vic.current = new Audio(SOUNDS.vic); audRefs.vic.current.volume = 0.6;
+    audRefs.go.current = new Audio(SOUNDS.go); audRefs.go.current.volume = 0.6;
+    audRefs.coin.current = new Audio(SOUNDS.coin); audRefs.coin.current.volume = 0.8;
+    
+    const sC = localStorage.getItem('c_coins'); const sI = localStorage.getItem('c_inv');
+    if (sC) setData(p => ({ ...p, c: parseInt(sC) }));
+    if (sI) setInv(JSON.parse(sI));
+    return () => audRefs.bgm.current?.pause();
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('c_coins', data.c.toString()); localStorage.setItem('c_inv', JSON.stringify(inv));
+  }, [data.c, inv]);
+
+  const playSnd = (ref) => { if (audioEn && ref.current) { ref.current.currentTime = 0; ref.current.play().catch(()=>{}); } };
+  const clk = (cb) => { playSnd(audRefs.clk); if(cb) cb(); };
+
+  const togAud = () => {
+    setAudioEn(!audioEn);
+    if (!audioEn && audRefs.bgm.current && ['playing','shop','menu'].includes(st)) audRefs.bgm.current.play().catch(()=>{});
+    else audRefs.bgm.current?.pause();
+  };
+
+  const startInteraction = () => { clk(); if(audioEn) audRefs.bgm.current?.play().catch(()=>{}); setSt('menu'); };
+
+  const startG = () => { setData(p => ({...p, l: 3, r: 1})); setEff({ s:false, b:false, p:false }); setSt('playing'); genRnd(1); };
+  
+  const genRnd = (r) => {
+    setGame(p => ({...p, fb: null})); setEff(p => ({...p, p: false}));
+    const shuf = [...ELEMENTS].sort(() => Math.random() - 0.5);
+    const sel = shuf.slice(0, 4);
+    setGame(p => ({ ...p, hid: sel, tar: sel[Math.floor(Math.random() * 4)], opt: [...sel].sort(() => Math.random() - 0.5) }));
+  };
+
+  const ans = (el) => {
+    if (game.fb) return;
+    if (el.n === game.tar.n) {
+      playSnd(audRefs.cor); setGame(p => ({...p, fb: 'c'}));
+      setTimeout(() => { if (data.r === 5) endG(true); else { setData(p => ({...p, r: p.r + 1})); genRnd(); } }, 1500);
+    } else {
+      playSnd(audRefs.wrg); setGame(p => ({...p, fb: 'w', shk: true})); setTimeout(() => setGame(p => ({...p, shk: false})), 500);
+      if (eff.s) { setEff(p => ({...p, s: false})); setTimeout(() => setGame(p => ({...p, fb: null})), 1500); }
+      else {
+        setData(p => ({...p, l: p.l - 1}));
+        setTimeout(() => { if (data.l - 1 <= 0) endG(false); else setGame(p => ({...p, fb: null})); }, 1500);
+      }
+    }
+  };
+
+  const endG = (win) => {
+    if (win) { playSnd(audRefs.vic); setData(p => ({...p, c: p.c + (eff.b ? 10 : 5)})); setSt('victory'); }
+    else { playSnd(audRefs.go); setSt('gameover'); }
+  };
+
+  const buy = (k, cst) => {
+    if (data.c >= cst) { playSnd(audRefs.coin); setData(p => ({...p, c: p.c - cst})); setInv(p => ({...p, [k]: p[k] + 1})); }
+    else { playSnd(audRefs.wrg); alert("Koin tidak cukup!"); }
+  };
+
+  const use = (k) => {
+    if (inv[k] <= 0 || st !== 'playing') return;
+    clk(); setInv(p => ({...p, [k]: p[k] - 1}));
+    if (k === 'f') {
+      const rem = game.opt.filter(o => o && o.n !== game.tar.n).slice(0,2).map(o=>o.n);
+      setGame(p => ({...p, opt: p.opt.map(o => o && rem.includes(o.n) ? null : o)}));
+    } else setEff(p => ({...p, [k === 'p'?'p':k==='s'?'s':'b']: true}));
+  };
+
+  const ShopItem = ({ t, d, k, cst, icn: Icn, cl }) => (
+    <div className={`bg-gradient-to-br ${cl} ${cardSty}`}>
+      <div>
+        <div className="flex justify-between items-start mb-2">
+          <div className="bg-white/20 p-3 rounded-xl"><Icn className="text-white" size={28}/></div>
+          <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded-lg text-white">Milikmu: {inv[k]}</span>
+        </div>
+        <h3 className="text-lg font-bold text-white mb-1">{t}</h3><p className="text-xs text-white/80 mb-4">{d}</p>
+      </div>
+      <button onClick={() => buy(k, cst)} className="w-full bg-black/30 hover:bg-black/50 text-white font-bold py-2 rounded-xl flex justify-center items-center transition">
+        Beli <Coins size={14} className="mx-1"/> {cst}
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-900 bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 font-sans selection:bg-blue-500/30 overflow-hidden relative text-white">
+      {st === 'start' && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/95 cursor-pointer transition-all duration-500" onClick={startInteraction}>
+          <div className="animate-pulse text-center"><MousePointerClick size={64} className="text-blue-400 mx-auto mb-4" /><h1 className="text-4xl font-bold">Klik untuk masuk</h1></div>
+        </div>
+      )}
+
+      <div className={`relative z-10 container mx-auto max-w-2xl p-4 min-h-screen flex flex-col transition-opacity duration-500 ${st==='start'?'opacity-0':'opacity-100'}`}>
+        <div className="flex justify-between items-center bg-white/10 p-4 rounded-2xl mb-6">
+          <span className="font-bold text-xl text-blue-300">Chemigo</span>
+          <div className="flex space-x-2 items-center">
+            <button onClick={togAud} className="p-2 bg-white/10 rounded-full">{audioEn ? <Volume2 size={18}/> : <VolumeX size={18} className="text-red-400"/>}</button>
+            <div className="flex items-center space-x-1 bg-yellow-500/20 px-3 py-1 rounded-full text-yellow-300 font-bold"><Coins size={16}/><span>{data.c}</span></div>
+            {st === 'playing' && <div className="flex items-center space-x-1 bg-red-500/20 px-3 py-1 rounded-full text-red-300 font-bold"><Heart size={16} fill="currentColor"/><span>{data.l}</span></div>}
+          </div>
+        </div>
+
+        <main className="flex-1 flex flex-col justify-center">
+          {st === 'menu' && (
+            <div className="text-center space-y-6 animate-in fade-in zoom-in">
+              <h1 className="text-6xl font-extrabold mb-2">🧪</h1><h1 className="text-4xl font-bold">Chemigo</h1>
+              <p className="text-blue-200">Tebak unsur, 5 ronde, jadilah master!</p>
+              <div className="space-y-3 max-w-xs mx-auto">
+                <button onClick={() => clk(startG)} className={`bg-blue-600 hover:bg-blue-500 ${btnSty}`}><Play size={20}/><span>Mulai Quest</span></button>
+                <button onClick={() => clk(()=>setSt('shop'))} className={`bg-white/10 hover:bg-white/20 ${btnSty}`}><Store size={20}/><span>Toko Item</span></button>
+              </div>
+            </div>
+          )}
+
+          {st === 'shop' && (
+            <div className="space-y-4 animate-in slide-in-from-bottom-4">
+              <div className="flex justify-between"><h2 className="text-2xl font-bold"><Store className="inline mr-2"/>Toko</h2><button onClick={()=>clk(()=>setSt('menu'))}><Home/></button></div>
+              <div className="grid grid-cols-2 gap-3">
+                <ShopItem k="p" cst={30} t="Scanner" d="Intip unsur yg ditanya." icn={Search} cl="from-indigo-600 to-indigo-800" />
+                <ShopItem k="s" cst={10} t="Perisai" d="Lindungi 1 nyawa." icn={Shield} cl="from-blue-600 to-blue-800" />
+                <ShopItem k="f" cst={15} t="50:50" d="Hapus 2 jwbn salah." icn={Zap} cl="from-yellow-600 to-orange-600" />
+                <ShopItem k="b" cst={25} t="Booster" d="Koin menang x2." icn={Flame} cl="from-red-600 to-red-800" />
+              </div>
+            </div>
+          )}
+
+          {st === 'playing' && (
+            <div className={`space-y-4 ${game.shk?'animate-[shake_0.4s_both]':''}`}>
+              <div className="flex justify-between items-center bg-white/5 p-2 rounded-xl">
+                <span className="font-bold">Ronde <span className="text-blue-400">{data.r}</span>/5</span>
+                <div className="flex space-x-1">
+                  {[['p',Search],['s',Shield],['f',Zap],['b',Flame]].map(([k,I]) => (
+                    <button key={k} onClick={()=>use(k)} disabled={inv[k]<=0 || (k==='f'?game.opt.includes(null):eff[k])} 
+                      className={`p-2 rounded-lg relative ${eff[k]?'bg-green-500':inv[k]>0?'bg-blue-500/50 hover:bg-blue-500':'bg-white/10 opacity-50'}`}>
+                      <I size={16}/>{inv[k]>0 && <span className="absolute -top-1 -right-1 bg-red-500 text-[9px] w-4 h-4 rounded-full flex items-center justify-center">{inv[k]}</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-black/20 p-2 rounded-xl overflow-x-auto relative min-h-[160px]">
+                {game.fb && (
+                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 rounded-xl">
+                    <div className={`${game.fb==='c'?'bg-green-500':'bg-red-500'} p-4 rounded-xl flex flex-col items-center animate-bounce`}>
+                      {game.fb==='c'?<CheckCircle2 size={40}/>:<XCircle size={40}/>}<h2 className="text-xl font-bold">{game.fb==='c'?'Tepat!':'Salah!'}</h2>
+                    </div>
+                  </div>
+                )}
+                <div className="min-w-[500px] grid grid-cols-[repeat(18,minmax(0,1fr))] gap-1 auto-rows-[2.5rem]">
+                  {ELEMENTS.map(el => {
+                    const isT = el.n === game.tar?.n; const isH = game.hid.some(h=>h.n===el.n);
+                    const sym = isH ? (isT && eff.p ? el.s : '?') : el.s;
+                    return (
+                      <div key={el.n} style={{ gridColumn: el.cl, gridRow: el.r }}
+                        className={`flex flex-col items-center justify-center rounded text-slate-900 border border-white/20 
+                        ${isH && !(isT && eff.p) ? 'bg-slate-700 text-white' : COLORS[el.c]} 
+                        ${isT ? 'ring-2 ring-white animate-pulse z-10 scale-110' : 'opacity-80'}`}>
+                        <span className="text-[8px] absolute top-0 left-0.5 opacity-60">{el.n}</span>
+                        <span className="font-bold text-sm">{sym}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="bg-white/10 p-4 rounded-xl text-center">
+                <p className="mb-4">Unsur apa di kotak <span className="bg-white text-black px-1 rounded animate-pulse">Berdenyut</span>?</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {game.opt.map((o, i) => o ? (
+                    <button key={o.n} onClick={()=>ans(o)} disabled={!!game.fb} className="bg-white/90 text-slate-900 py-3 rounded-xl font-bold hover:bg-white active:scale-95 border-b-4 border-slate-400">
+                      <div className="text-xl">{o.s}</div><div className="text-xs opacity-70">{o.nm}</div>
+                    </button>
+                  ) : <div key={`e-${i}`} className="bg-white/5 rounded-xl border border-white/10"/>)}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(st === 'gameover' || st === 'victory') && (
+            <div className="text-center space-y-4 animate-in fade-in zoom-in">
+              <div className={`${st==='victory'?'bg-yellow-500/20':'bg-red-500/20'} p-6 rounded-full inline-block`}>
+                {st==='victory'?<Award size={64} className="text-yellow-400"/>:<Heart size={64} className="text-red-400"/>}
+              </div>
+              <h2 className="text-3xl font-bold">{st==='victory'?'Selesai!':'Game Over'}</h2>
+              {st==='victory' && <p className="text-yellow-400 font-bold text-xl">+{eff.b?10:5} Koin {eff.b&&<span className="text-xs bg-red-500 text-white px-1 rounded">x2</span>}</p>}
+              <div className="flex space-x-2 max-w-xs mx-auto mt-4">
+                <button onClick={()=>clk(startG)} className="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold">Lagi</button>
+                <button onClick={()=>clk(()=>setSt('menu'))} className="flex-1 bg-white/10 hover:bg-white/20 py-3 rounded-xl font-bold">Menu</button>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+      <style dangerouslySetInnerHTML={{__html: `@keyframes shake { 0%,100%{transform:translateX(0)} 25%,75%{transform:translateX(-10px)} 50%{transform:translateX(10px)} }`}}/>
+    </div>
+  );
+}
