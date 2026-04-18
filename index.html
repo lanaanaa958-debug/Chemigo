@@ -1,287 +1,341 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Heart, Coins, Search, Shield, Zap, Flame, Play, Store, Home, Award, CheckCircle2, XCircle, Volume2, VolumeX, MousePointerClick } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chemigo: Periodic Quest</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons (Pengganti Lucide agar bisa langsung jalan di HTML) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel untuk membaca kode React JSX di browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-// --- DATABASE & KONFIGURASI ---
-const ELEMENTS = [
-  { n: 1, s: 'H', nm: 'Hidrogen', c: 'nonmetal', r: 1, cl: 1 }, { n: 2, s: 'He', nm: 'Helium', c: 'noble', r: 1, cl: 18 },
-  { n: 3, s: 'Li', nm: 'Litium', c: 'alkali', r: 2, cl: 1 }, { n: 4, s: 'Be', nm: 'Berilium', c: 'alkaline', r: 2, cl: 2 },
-  { n: 5, s: 'B', nm: 'Boron', c: 'metalloid', r: 2, cl: 13 }, { n: 6, s: 'C', nm: 'Karbon', c: 'nonmetal', r: 2, cl: 14 },
-  { n: 7, s: 'N', nm: 'Nitrogen', c: 'nonmetal', r: 2, cl: 15 }, { n: 8, s: 'O', nm: 'Oksigen', c: 'nonmetal', r: 2, cl: 16 },
-  { n: 9, s: 'F', nm: 'Fluorin', c: 'halogen', r: 2, cl: 17 }, { n: 10, s: 'Ne', nm: 'Neon', c: 'noble', r: 2, cl: 18 },
-  { n: 11, s: 'Na', nm: 'Natrium', c: 'alkali', r: 3, cl: 1 }, { n: 12, s: 'Mg', nm: 'Magnesium', c: 'alkaline', r: 3, cl: 2 },
-  { n: 13, s: 'Al', nm: 'Aluminium', c: 'post-transition', r: 3, cl: 13 }, { n: 14, s: 'Si', nm: 'Silikon', c: 'metalloid', r: 3, cl: 14 },
-  { n: 15, s: 'P', nm: 'Fosfor', c: 'nonmetal', r: 3, cl: 15 }, { n: 16, s: 'S', nm: 'Belerang', c: 'nonmetal', r: 3, cl: 16 },
-  { n: 17, s: 'Cl', nm: 'Klorin', c: 'halogen', r: 3, cl: 17 }, { n: 18, s: 'Ar', nm: 'Argon', c: 'noble', r: 3, cl: 18 },
-  { n: 19, s: 'K', nm: 'Kalium', c: 'alkali', r: 4, cl: 1 }, { n: 20, s: 'Ca', nm: 'Kalsium', c: 'alkaline', r: 4, cl: 2 },
-  { n: 21, s: 'Sc', nm: 'Skandium', c: 'transition', r: 4, cl: 3 }, { n: 22, s: 'Ti', nm: 'Titanium', c: 'transition', r: 4, cl: 4 },
-  { n: 23, s: 'V', nm: 'Vanadium', c: 'transition', r: 4, cl: 5 }, { n: 24, s: 'Cr', nm: 'Kromium', c: 'transition', r: 4, cl: 6 },
-  { n: 25, s: 'Mn', nm: 'Mangan', c: 'transition', r: 4, cl: 7 }, { n: 26, s: 'Fe', nm: 'Besi', c: 'transition', r: 4, cl: 8 },
-  { n: 27, s: 'Co', nm: 'Kobal', c: 'transition', r: 4, cl: 9 }, { n: 28, s: 'Ni', nm: 'Nikel', c: 'transition', r: 4, cl: 10 },
-  { n: 29, s: 'Cu', nm: 'Tembaga', c: 'transition', r: 4, cl: 11 }, { n: 30, s: 'Zn', nm: 'Seng', c: 'transition', r: 4, cl: 12 },
-  { n: 31, s: 'Ga', nm: 'Galium', c: 'post-transition', r: 4, cl: 13 }, { n: 32, s: 'Ge', nm: 'Germanium', c: 'metalloid', r: 4, cl: 14 },
-  { n: 33, s: 'As', nm: 'Arsenik', c: 'metalloid', r: 4, cl: 15 }, { n: 34, s: 'Se', nm: 'Selenium', c: 'nonmetal', r: 4, cl: 16 },
-  { n: 35, s: 'Br', nm: 'Bromin', c: 'halogen', r: 4, cl: 17 }, { n: 36, s: 'Kr', nm: 'Kripton', c: 'noble', r: 4, cl: 18 },
-];
+    <style>
+        @keyframes shake { 
+            0%, 100% { transform: translateX(0); } 
+            25%, 75% { transform: translateX(-15px); } 
+            50% { transform: translateX(15px); } 
+        }
+        .animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        .grid-cols-18 { grid-template-columns: repeat(18, minmax(0, 1fr)); }
+        body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background-color: #0f172a; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-const COLORS = {
-  'nonmetal': 'bg-blue-400 text-blue-900', 'noble': 'bg-purple-400 text-purple-900',
-  'alkali': 'bg-red-400 text-red-900', 'alkaline': 'bg-orange-400 text-orange-900',
-  'metalloid': 'bg-green-400 text-green-900', 'halogen': 'bg-indigo-400 text-indigo-900',
-  'post-transition': 'bg-teal-400 text-teal-900', 'transition': 'bg-yellow-400 text-yellow-900',
-};
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-const SOUNDS = {
-  bgm: 'https://codeskulptor-demos.commondatastorage.googleapis.com/pang/paza-moduless.mp3',
-  correct: 'https://actions.google.com/sounds/v1/cartoon/cartoon_cowbell.ogg',
-  wrong: 'https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg',
-  click: 'https://actions.google.com/sounds/v1/ui/button_click.ogg',
-  victory: 'https://codeskulptor-demos.commondatastorage.googleapis.com/commando/pass.mp3',
-  gameover: 'https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg',
-  coin: 'https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg'
-};
+        // --- DATABASE & KONFIGURASI ---
+        const ELEMENTS = [
+            { n: 1, s: 'H', nm: 'Hidrogen', c: 'nonmetal', r: 1, cl: 1 }, { n: 2, s: 'He', nm: 'Helium', c: 'noble', r: 1, cl: 18 },
+            { n: 3, s: 'Li', nm: 'Litium', c: 'alkali', r: 2, cl: 1 }, { n: 4, s: 'Be', nm: 'Berilium', c: 'alkaline', r: 2, cl: 2 },
+            { n: 5, s: 'B', nm: 'Boron', c: 'metalloid', r: 2, cl: 13 }, { n: 6, s: 'C', nm: 'Karbon', c: 'nonmetal', r: 2, cl: 14 },
+            { n: 7, s: 'N', nm: 'Nitrogen', c: 'nonmetal', r: 2, cl: 15 }, { n: 8, s: 'O', nm: 'Oksigen', c: 'nonmetal', r: 2, cl: 16 },
+            { n: 9, s: 'F', nm: 'Fluorin', c: 'halogen', r: 2, cl: 17 }, { n: 10, s: 'Ne', nm: 'Neon', c: 'noble', r: 2, cl: 18 },
+            { n: 11, s: 'Na', nm: 'Natrium', c: 'alkali', r: 3, cl: 1 }, { n: 12, s: 'Mg', nm: 'Magnesium', c: 'alkaline', r: 3, cl: 2 },
+            { n: 13, s: 'Al', nm: 'Aluminium', c: 'post-transition', r: 3, cl: 13 }, { n: 14, s: 'Si', nm: 'Silikon', c: 'metalloid', r: 3, cl: 14 },
+            { n: 15, s: 'P', nm: 'Fosfor', c: 'nonmetal', r: 3, cl: 15 }, { n: 16, s: 'S', nm: 'Belerang', c: 'nonmetal', r: 3, cl: 16 },
+            { n: 17, s: 'Cl', nm: 'Klorin', c: 'halogen', r: 3, cl: 17 }, { n: 18, s: 'Ar', nm: 'Argon', c: 'noble', r: 3, cl: 18 },
+            { n: 19, s: 'K', nm: 'Kalium', c: 'alkali', r: 4, cl: 1 }, { n: 20, s: 'Ca', nm: 'Kalsium', c: 'alkaline', r: 4, cl: 2 },
+            { n: 21, s: 'Sc', nm: 'Skandium', c: 'transition', r: 4, cl: 3 }, { n: 22, s: 'Ti', nm: 'Titanium', c: 'transition', r: 4, cl: 4 },
+            { n: 23, s: 'V', nm: 'Vanadium', c: 'transition', r: 4, cl: 5 }, { n: 24, s: 'Cr', nm: 'Kromium', c: 'transition', r: 4, cl: 6 },
+            { n: 25, s: 'Mn', nm: 'Mangan', c: 'transition', r: 4, cl: 7 }, { n: 26, s: 'Fe', nm: 'Besi', c: 'transition', r: 4, cl: 8 },
+            { n: 27, s: 'Co', nm: 'Kobal', c: 'transition', r: 4, cl: 9 }, { n: 28, s: 'Ni', nm: 'Nikel', c: 'transition', r: 4, cl: 10 },
+            { n: 29, s: 'Cu', nm: 'Tembaga', c: 'transition', r: 4, cl: 11 }, { n: 30, s: 'Zn', nm: 'Seng', c: 'transition', r: 4, cl: 12 },
+            { n: 31, s: 'Ga', nm: 'Galium', c: 'post-transition', r: 4, cl: 13 }, { n: 32, s: 'Ge', nm: 'Germanium', c: 'metalloid', r: 4, cl: 14 },
+            { n: 33, s: 'As', nm: 'Arsenik', c: 'metalloid', r: 4, cl: 15 }, { n: 34, s: 'Se', nm: 'Selenium', c: 'nonmetal', r: 4, cl: 16 },
+            { n: 35, s: 'Br', nm: 'Bromin', c: 'halogen', r: 4, cl: 17 }, { n: 36, s: 'Kr', nm: 'Kripton', c: 'noble', r: 4, cl: 18 },
+        ];
 
-export default function App() {
-  const [gameState, setGameState] = useState('start');
-  const [coins, setCoins] = useState(0);
-  const [lives, setLives] = useState(3);
-  const [round, setRound] = useState(1);
-  
-  const [hiddenElements, setHiddenElements] = useState([]);
-  const [targetElement, setTargetElement] = useState(null);
-  const [options, setOptions] = useState([]);
-  const [feedback, setFeedback] = useState(null); 
-  const [shake, setShake] = useState(false);
-  
-  const [inventory, setInventory] = useState({ peek: 0, shield: 0, fifty: 0, booster: 0 });
-  const [effects, setEffects] = useState({ shield: false, booster: false, peeked: false });
-  const [soundEnabled, setSoundEnabled] = useState(true);
+        const COLORS = {
+            'nonmetal': 'bg-blue-400 text-blue-900', 'noble': 'bg-purple-400 text-purple-900',
+            'alkali': 'bg-red-400 text-red-900', 'alkaline': 'bg-orange-400 text-orange-900',
+            'metalloid': 'bg-green-400 text-green-900', 'halogen': 'bg-indigo-400 text-indigo-900',
+            'post-transition': 'bg-teal-400 text-teal-900', 'transition': 'bg-yellow-400 text-yellow-900',
+        };
 
-  const audRefs = {
-    bgm: useRef(null), correct: useRef(null), wrong: useRef(null),
-    click: useRef(null), victory: useRef(null), gameover: useRef(null), coin: useRef(null)
-  };
+        const SOUNDS = {
+            bgm: 'https://codeskulptor-demos.commondatastorage.googleapis.com/pang/paza-moduless.mp3',
+            correct: 'https://actions.google.com/sounds/v1/cartoon/cartoon_cowbell.ogg',
+            wrong: 'https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg',
+            click: 'https://actions.google.com/sounds/v1/ui/button_click.ogg',
+            victory: 'https://codeskulptor-demos.commondatastorage.googleapis.com/commando/pass.mp3',
+            gameover: 'https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg',
+            coin: 'https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg'
+        };
 
-  useEffect(() => {
-    audRefs.bgm.current = new Audio(SOUNDS.bgm); audRefs.bgm.current.loop = true; audRefs.bgm.current.volume = 0.25;
-    audRefs.correct.current = new Audio(SOUNDS.correct); audRefs.correct.current.volume = 0.8;
-    audRefs.wrong.current = new Audio(SOUNDS.wrong); audRefs.wrong.current.volume = 1.0;
-    audRefs.click.current = new Audio(SOUNDS.click); audRefs.click.current.volume = 0.6;
-    audRefs.victory.current = new Audio(SOUNDS.victory); audRefs.victory.current.volume = 0.6;
-    audRefs.gameover.current = new Audio(SOUNDS.gameover); audRefs.gameover.current.volume = 0.6;
-    audRefs.coin.current = new Audio(SOUNDS.coin); audRefs.coin.current.volume = 0.8;
+        function App() {
+            const [gameState, setGameState] = useState('start');
+            const [coins, setCoins] = useState(0);
+            const [lives, setLives] = useState(3);
+            const [round, setRound] = useState(1);
+            
+            const [hiddenElements, setHiddenElements] = useState([]);
+            const [targetElement, setTargetElement] = useState(null);
+            const [options, setOptions] = useState([]);
+            const [feedback, setFeedback] = useState(null); 
+            const [shake, setShake] = useState(false);
+            
+            const [inventory, setInventory] = useState({ peek: 0, shield: 0, fifty: 0, booster: 0 });
+            const [effects, setEffects] = useState({ shield: false, booster: false, peeked: false });
+            const [soundEnabled, setSoundEnabled] = useState(true);
 
-    const savedC = localStorage.getItem('chemigo_coins');
-    const savedI = localStorage.getItem('chemigo_inventory');
-    if (savedC) setCoins(parseInt(savedC));
-    if (savedI) setInventory(JSON.parse(savedI));
-    return () => audRefs.bgm.current?.pause();
-  }, []);
+            const audRefs = {
+                bgm: useRef(null), correct: useRef(null), wrong: useRef(null),
+                click: useRef(null), victory: useRef(null), gameover: useRef(null), coin: useRef(null)
+            };
 
-  useEffect(() => {
-    localStorage.setItem('chemigo_coins', coins.toString());
-    localStorage.setItem('chemigo_inventory', JSON.stringify(inventory));
-  }, [coins, inventory]);
+            useEffect(() => {
+                audRefs.bgm.current = new Audio(SOUNDS.bgm); audRefs.bgm.current.loop = true; audRefs.bgm.current.volume = 0.25;
+                audRefs.correct.current = new Audio(SOUNDS.correct); audRefs.correct.current.volume = 0.8;
+                audRefs.wrong.current = new Audio(SOUNDS.wrong); audRefs.wrong.current.volume = 1.0;
+                audRefs.click.current = new Audio(SOUNDS.click); audRefs.click.current.volume = 0.6;
+                audRefs.victory.current = new Audio(SOUNDS.victory); audRefs.victory.current.volume = 0.6;
+                audRefs.gameover.current = new Audio(SOUNDS.gameover); audRefs.gameover.current.volume = 0.6;
+                audRefs.coin.current = new Audio(SOUNDS.coin); audRefs.coin.current.volume = 0.8;
 
-  const playSfx = (name) => { if (soundEnabled && audRefs[name].current) { audRefs[name].current.currentTime = 0; audRefs[name].current.play().catch(()=>{}); } };
-  const handleMenuClick = (fn) => { playSfx('click'); if(fn) fn(); };
+                const savedC = localStorage.getItem('chemigo_coins');
+                const savedI = localStorage.getItem('chemigo_inventory');
+                if (savedC) setCoins(parseInt(savedC));
+                if (savedI) setInventory(JSON.parse(savedI));
+                return () => audRefs.bgm.current?.pause();
+            }, []);
 
-  const toggleSound = () => {
-    setSoundEnabled(!soundEnabled);
-    if (!soundEnabled && audRefs.bgm.current && ['playing','shop','menu'].includes(gameState)) audRefs.bgm.current.play().catch(()=>{});
-    else audRefs.bgm.current?.pause();
-  };
+            useEffect(() => {
+                localStorage.setItem('chemigo_coins', coins.toString());
+                localStorage.setItem('chemigo_inventory', JSON.stringify(inventory));
+            }, [coins, inventory]);
 
-  const startApp = () => { playSfx('click'); if(soundEnabled) audRefs.bgm.current?.play().catch(()=>{}); setGameState('menu'); };
+            const playSfx = (name) => { if (soundEnabled && audRefs[name].current) { audRefs[name].current.currentTime = 0; audRefs[name].current.play().catch(()=>{}); } };
+            const handleMenuClick = (fn) => { playSfx('click'); if(fn) fn(); };
 
-  const startQuest = () => { setLives(3); setRound(1); setEffects({ shield: false, booster: false, peeked: false }); setGameState('playing'); generateRound(1); };
+            const toggleSound = () => {
+                setSoundEnabled(!soundEnabled);
+                if (!soundEnabled && audRefs.bgm.current && ['playing','shop','menu'].includes(gameState)) audRefs.bgm.current.play().catch(()=>{});
+                else audRefs.bgm.current?.pause();
+            };
 
-  const generateRound = () => {
-    setFeedback(null); setEffects(p => ({ ...p, peeked: false }));
-    const shuffled = [...ELEMENTS].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, 4);
-    setHiddenElements(selected);
-    setTargetElement(selected[Math.floor(Math.random() * selected.length)]);
-    setOptions([...selected].sort(() => Math.random() - 0.5));
-  };
+            const startApp = () => { playSfx('click'); if(soundEnabled) audRefs.bgm.current?.play().catch(()=>{}); setGameState('menu'); };
 
-  const handleAnswer = (el) => {
-    if (feedback !== null) return;
-    if (el.n === targetElement.n) {
-      playSfx('correct'); setFeedback('correct');
-      setTimeout(() => { if (round === 5) endGame(true); else { setRound(r => r + 1); generateRound(); } }, 1500);
-    } else {
-      playSfx('wrong'); setFeedback('wrong'); setShake(true); setTimeout(() => setShake(false), 500);
-      if (effects.shield) { setEffects(p => ({ ...p, shield: false })); setTimeout(() => setFeedback(null), 1500); }
-      else {
-        const newL = lives - 1; setLives(newL);
-        setTimeout(() => { if (newL <= 0) endGame(false); else setFeedback(null); }, 1500);
-      }
-    }
-  };
+            const startQuest = () => { setLives(3); setRound(1); setEffects({ shield: false, booster: false, peeked: false }); setGameState('playing'); generateRound(1); };
 
-  const endGame = (win) => {
-    if (win) { playSfx('victory'); setCoins(c => c + (effects.booster ? 10 : 5)); setGameState('victory'); }
-    else { playSfx('gameover'); setGameState('gameover'); }
-  };
+            const generateRound = () => {
+                setFeedback(null); setEffects(p => ({ ...p, peeked: false }));
+                const shuffled = [...ELEMENTS].sort(() => Math.random() - 0.5);
+                const selected = shuffled.slice(0, 4);
+                setHiddenElements(selected);
+                setTargetElement(selected[Math.floor(Math.random() * selected.length)]);
+                setOptions([...selected].sort(() => Math.random() - 0.5));
+            };
 
-  const buyItem = (key, cost) => {
-    if (coins >= cost) { playSfx('coin'); setCoins(c => c - cost); setInventory(p => ({ ...p, [key]: p[key] + 1 })); }
-    else { playSfx('wrong'); alert("Koin tidak cukup!"); }
-  };
+            const handleAnswer = (el) => {
+                if (feedback !== null) return;
+                if (el.n === targetElement.n) {
+                    playSfx('correct'); setFeedback('correct');
+                    setTimeout(() => { if (round === 5) endGame(true); else { setRound(r => r + 1); generateRound(); } }, 1500);
+                } else {
+                    playSfx('wrong'); setFeedback('wrong'); setShake(true); setTimeout(() => setShake(false), 500);
+                    if (effects.shield) { setEffects(p => ({ ...p, shield: false })); setTimeout(() => setFeedback(null), 1500); }
+                    else {
+                        const newL = lives - 1; setLives(newL);
+                        setTimeout(() => { if (newL <= 0) endGame(false); else setFeedback(null); }, 1500);
+                    }
+                }
+            };
 
-  const useItem = (key) => {
-    if (inventory[key] <= 0 || gameState !== 'playing') return;
-    playSfx('click'); setInventory(p => ({ ...p, [key]: p[key] - 1 }));
-    if (key === 'fifty') {
-      const removed = options.filter(o => o && o.n !== targetElement.n).slice(0, 2).map(o => o.n);
-      setOptions(options.map(o => o && removed.includes(o.n) ? null : o));
-    } else { setEffects(p => ({ ...p, [key === 'peek' ? 'peeked' : key]: true })); }
-  };
+            const endGame = (win) => {
+                if (win) { playSfx('victory'); setCoins(c => c + (effects.booster ? 10 : 5)); setGameState('victory'); }
+                else { playSfx('gameover'); setGameState('gameover'); }
+            };
 
-  // Helper untuk merender item di toko
-  const ShopCard = ({ k, title, desc, cost, Icn, bg }) => (
-    <div className={`bg-gradient-to-br ${bg} backdrop-blur-md p-5 rounded-2xl border border-white/20 flex flex-col justify-between`}>
-      <div>
-        <div className="flex justify-between items-start mb-2">
-          <div className="bg-white/20 p-3 rounded-xl"><Icn className="text-white" size={32}/></div>
-          <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded-lg text-white">Milikmu: {inventory[k]}</span>
-        </div>
-        <h3 className="text-xl font-bold text-white mb-1">{title}</h3>
-        <p className="text-sm text-white/80 mb-4">{desc}</p>
-      </div>
-      <button onClick={() => buyItem(k, cost)} className="w-full bg-black/30 hover:bg-black/50 text-white font-bold py-3 rounded-xl flex justify-center items-center transition">
-        Beli <Coins size={16} className="mx-1"/> {cost}
-      </button>
-    </div>
-  );
+            const buyItem = (key, cost) => {
+                if (coins >= cost) { playSfx('coin'); setCoins(c => c - cost); setInventory(p => ({ ...p, [key]: p[key] + 1 })); }
+                else { playSfx('wrong'); alert("Koin tidak cukup!"); }
+            };
 
-  return (
-    <div className="min-h-screen bg-slate-900 bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 font-sans selection:bg-blue-500/30 relative overflow-hidden">
-      {gameState === 'start' && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/95 cursor-pointer" onClick={startApp}>
-          <div className="animate-pulse text-center"><MousePointerClick size={64} className="text-blue-400 mx-auto mb-4" /><h1 className="text-4xl font-bold text-white">Klik untuk masuk</h1></div>
-        </div>
-      )}
+            const useItem = (key) => {
+                if (inventory[key] <= 0 || gameState !== 'playing') return;
+                playSfx('click'); setInventory(p => ({ ...p, [key]: p[key] - 1 }));
+                if (key === 'fifty') {
+                    const removed = options.filter(o => o && o.n !== targetElement.n).slice(0, 2).map(o => o.n);
+                    setOptions(options.map(o => o && removed.includes(o.n) ? null : o));
+                } else { setEffects(p => ({ ...p, [key === 'peek' ? 'peeked' : key]: true })); }
+            };
 
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[100px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[100px]"></div>
-      </div>
-
-      <div className={`relative z-10 container mx-auto max-w-3xl p-4 sm:p-6 min-h-screen flex flex-col transition-opacity duration-500 ${gameState==='start'?'opacity-0':'opacity-100'}`}>
-        {/* HEADER */}
-        {gameState !== 'start' && (
-          <div className="flex justify-between items-center bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 mb-6">
-            <span className="bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text font-bold text-xl">Chemigo</span>
-            <div className="flex items-center space-x-3 text-white">
-              <button onClick={toggleSound} className="bg-white/10 p-2 rounded-full border border-white/20">{soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} className="text-red-400" />}</button>
-              <div className="flex items-center space-x-1 bg-yellow-400/20 px-3 py-1 rounded-full text-yellow-300 font-bold border border-yellow-400/50"><Coins size={18} /><span>{coins}</span></div>
-              {gameState === 'playing' && <div className="flex items-center space-x-1 bg-red-400/20 px-3 py-1 rounded-full text-red-300 font-bold border border-red-400/50"><Heart size={18} fill="currentColor" className={lives<=1?"animate-pulse":""}/><span>{lives}</span></div>}
-            </div>
-          </div>
-        )}
-
-        <main className="flex-1 flex flex-col justify-center text-white">
-          {/* MENU */}
-          {gameState === 'menu' && (
-            <div className="flex flex-col items-center space-y-8 animate-in zoom-in">
-              <div className="text-center space-y-4">
-                <div className="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center text-6xl shadow-2xl border-2 border-white/30 mx-auto">🧪</div>
-                <h1 className="text-5xl font-extrabold tracking-tight">Chemigo</h1>
-                <p className="text-blue-100 max-w-md mx-auto">Tebak unsur rahasia yang menyala, bertahan 5 ronde, jadilah master!</p>
-              </div>
-              <div className="flex flex-col space-y-4 w-full max-w-xs">
-                <button onClick={() => handleMenuClick(startQuest)} className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 font-bold py-4 rounded-2xl shadow-lg transition border border-white/20"><Play size={24}/><span>Mulai Quest</span></button>
-                <button onClick={() => handleMenuClick(()=>setGameState('shop'))} className="w-full flex items-center justify-center space-x-2 bg-white/10 hover:bg-white/20 font-bold py-4 rounded-2xl shadow-lg transition border border-white/20"><Store size={24}/><span>Toko Item</span></button>
-              </div>
-            </div>
-          )}
-
-          {/* SHOP */}
-          {gameState === 'shop' && (
-            <div className="space-y-6 animate-in slide-in-from-bottom-4">
-              <div className="flex items-center justify-between"><h2 className="text-3xl font-bold"><Store className="inline mr-2"/> Toko Item</h2><button onClick={() => handleMenuClick(()=>setGameState('menu'))} className="bg-white/10 p-2 rounded-full"><Home/></button></div>
-              <p className="text-blue-100 bg-white/5 p-4 rounded-xl border border-white/10">Beli power-ups untuk membantumu di Quest!</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ShopCard k="peek" title="Scanner" desc="Intip unsur yg ditanya." cost={30} Icn={Search} bg="from-indigo-600 to-indigo-900" />
-                <ShopCard k="shield" title="Perisai" desc="Lindungi dari 1 kesalahan." cost={10} Icn={Shield} bg="from-blue-600 to-blue-900" />
-                <ShopCard k="fifty" title="50:50" desc="Hapus 2 pilihan salah." cost={15} Icn={Zap} bg="from-yellow-600 to-orange-900" />
-                <ShopCard k="booster" title="Booster" desc="Hadiah koin menang x2." cost={25} Icn={Flame} bg="from-red-600 to-red-900" />
-              </div>
-            </div>
-          )}
-
-          {/* PLAYING */}
-          {gameState === 'playing' && (
-            <div className={`space-y-6 ${shake ? 'animate-[shake_0.4s_both]' : ''}`}>
-              <div className="flex justify-between items-center bg-white/10 p-3 rounded-xl border border-white/20">
-                <div className="font-bold">Ronde <span className="text-blue-300 text-xl">{round}</span> / 5</div>
-                <div className="flex space-x-2">
-                  {[ {k:'peek', I:Search, c:'indigo'}, {k:'shield', I:Shield, c:'blue'}, {k:'fifty', I:Zap, c:'yellow'}, {k:'booster', I:Flame, c:'red'} ].map(({k, I, c}) => {
-                    const isDis = inventory[k] <= 0 || (k==='fifty'?options.includes(null):(k==='peek'?effects.peeked:effects[k]));
-                    const isAct = k!=='fifty' && k!=='peek' && effects[k];
-                    return (
-                      <button key={k} onClick={()=>useItem(k)} disabled={isDis} className={`p-2 rounded-lg border transition relative ${isAct?`bg-${c}-500 ring-2 ring-white`:inventory[k]>0?`bg-${c}-500/50 hover:bg-${c}-500`:'bg-gray-500/30 opacity-50'}`}>
-                        <I size={18} className="text-white"/> {inventory[k]>0 && <span className="absolute -top-1 -right-1 bg-red-500 text-[10px] w-4 h-4 rounded-full flex justify-center items-center">{inventory[k]}</span>}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="bg-black/20 p-4 rounded-2xl border border-white/10 overflow-x-auto relative">
-                {feedback && (
-                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 rounded-2xl">
-                    <div className={`${feedback==='correct'?'bg-green-500':'bg-red-500'} p-6 rounded-2xl flex flex-col items-center animate-bounce`}>
-                      {feedback==='correct'?<CheckCircle2 size={64}/>:<XCircle size={64}/>}<h2 className="text-2xl font-bold">{feedback==='correct'?'Tepat!':'Salah!'}</h2>
+            const ShopCard = ({ k, title, desc, cost, icn, bg }) => (
+                <div className={`bg-gradient-to-br ${bg} backdrop-blur-md p-5 rounded-2xl border border-white/20 flex flex-col justify-between`}>
+                    <div>
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="bg-white/20 p-3 rounded-xl flex items-center justify-center text-3xl text-white"><i className={`ph-fill ${icn}`}></i></div>
+                            <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded-lg text-white">Milikmu: {inventory[k]}</span>
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-1">{title}</h3>
+                        <p className="text-sm text-white/80 mb-4">{desc}</p>
                     </div>
-                  </div>
-                )}
-                <div className="min-w-[600px] grid grid-cols-[repeat(18,minmax(0,1fr))] gap-1 auto-rows-[3rem]">
-                  {ELEMENTS.map(el => {
-                    const isT = el.n === targetElement?.n;
-                    const isH = hiddenElements.some(h => h.n === el.n);
-                    const isDark = isH && !(isT && effects.peeked);
-                    return (
-                      <div key={el.n} style={{ gridColumn: el.cl, gridRow: el.r }} className={`flex flex-col items-center justify-center rounded-md border border-white/30 transition-all ${isDark?'bg-slate-800 text-white':COLORS[el.c]} ${isT?'ring-4 ring-white animate-pulse z-10 scale-110':'opacity-80'}`}>
-                        <span className="text-[10px] absolute top-0.5 left-1 opacity-70">{el.n}</span>
-                        <span className="font-bold text-lg">{isH && !(isT && effects.peeked) ? '?' : el.s}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="bg-white/10 p-6 rounded-2xl border border-white/20 text-center">
-                <h3 className="text-lg font-bold mb-6">Pilih unsur yang berada di kotak <span className="bg-white text-slate-900 px-2 rounded animate-pulse">Berdenyut</span></h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {options.map((opt, i) => opt ? (
-                    <button key={opt.n} onClick={()=>handleAnswer(opt)} disabled={!!feedback} className="bg-white/90 text-slate-800 font-bold py-4 rounded-xl active:scale-95 border-b-4 border-slate-300 hover:border-blue-400">
-                      <span className="text-2xl block">{opt.s}</span><span className="text-sm opacity-80">{opt.nm}</span>
+                    <button onClick={() => buyItem(k, cost)} className="w-full bg-black/30 hover:bg-black/50 text-white font-bold py-3 rounded-xl flex justify-center items-center transition">
+                        Beli <i className="ph-fill ph-coin mx-1 text-yellow-400"></i> {cost}
                     </button>
-                  ) : <div key={i} className="bg-white/5 border border-white/10 rounded-xl h-[88px]"></div>)}
                 </div>
-              </div>
-            </div>
-          )}
+            );
 
-          {/* GAMEOVER / VICTORY */}
-          {(gameState === 'gameover' || gameState === 'victory') && (
-            <div className="text-center space-y-6 py-10 animate-in zoom-in">
-              <div className={`${gameState==='victory'?'bg-yellow-500':'bg-red-500'}/20 p-6 rounded-full inline-block`}>
-                {gameState==='victory' ? <Award size={80} className="text-yellow-400"/> : <Heart size={64} className="text-red-400"/>}
-              </div>
-              <h2 className="text-4xl font-extrabold">{gameState==='victory'?'Quest Selesai!':'Game Over!'}</h2>
-              {gameState==='victory' && <div className="bg-black/30 px-6 py-4 rounded-2xl mx-auto inline-flex items-center space-x-3 text-2xl font-bold text-yellow-400">+{effects.booster?10:5} <Coins className="ml-2"/></div>}
-              <div className="flex space-x-4 max-w-xs mx-auto mt-4">
-                <button onClick={()=>handleMenuClick(startQuest)} className="flex-1 bg-blue-500 py-3 rounded-xl font-bold">Lagi</button>
-                <button onClick={()=>handleMenuClick(()=>setGameState('menu'))} className="flex-1 bg-white/10 py-3 rounded-xl font-bold">Menu</button>
-              </div>
-            </div>
-          )}
-        </main>
-      </div>
-      <style dangerouslySetInnerHTML={{__html: `@keyframes shake { 0%,100%{transform:translateX(0)} 25%,75%{transform:translateX(-15px)} 50%{transform:translateX(15px)} }`}}/>
-    </div>
-  );
-}
+            return (
+                <div className="min-h-screen bg-slate-900 bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 font-sans selection:bg-blue-500/30 relative overflow-hidden text-white">
+                    {gameState === 'start' && (
+                        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/95 cursor-pointer" onClick={startApp}>
+                            <div className="animate-pulse text-center">
+                                <i className="ph-fill ph-cursor-click text-6xl text-blue-400 mb-4 block"></i>
+                                <h1 className="text-4xl font-bold text-white">Klik untuk masuk</h1>
+                                <p className="text-blue-200 mt-2">Pastikan suara menyala</p>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+                        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[100px]"></div>
+                        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[100px]"></div>
+                    </div>
+
+                    <div className={`relative z-10 container mx-auto max-w-3xl p-4 sm:p-6 min-h-screen flex flex-col transition-opacity duration-500 ${gameState==='start'?'opacity-0':'opacity-100'}`}>
+                        {gameState !== 'start' && (
+                            <div className="flex justify-between items-center bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 mb-6">
+                                <span className="bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text font-bold text-xl">Chemigo</span>
+                                <div className="flex items-center space-x-3 text-white">
+                                    <button onClick={toggleSound} className="bg-white/10 p-2 rounded-full border border-white/20 text-xl">
+                                        <i className={`ph-fill ${soundEnabled ? 'ph-speaker-high' : 'ph-speaker-x text-red-400'}`}></i>
+                                    </button>
+                                    <div className="flex items-center space-x-1 bg-yellow-400/20 px-3 py-1 rounded-full text-yellow-300 font-bold border border-yellow-400/50">
+                                        <i className="ph-fill ph-coin text-lg"></i><span>{coins}</span>
+                                    </div>
+                                    {gameState === 'playing' && (
+                                        <div className="flex items-center space-x-1 bg-red-400/20 px-3 py-1 rounded-full text-red-300 font-bold border border-red-400/50">
+                                            <i className={`ph-fill ph-heart text-lg ${lives<=1?"animate-pulse":""}`}></i><span>{lives}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        <main className="flex-1 flex flex-col justify-center text-white">
+                            {gameState === 'menu' && (
+                                <div className="flex flex-col items-center space-y-8">
+                                    <div className="text-center space-y-4">
+                                        <div className="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center text-6xl shadow-2xl border-2 border-white/30 mx-auto">🧪</div>
+                                        <h1 className="text-5xl font-extrabold tracking-tight">Chemigo</h1>
+                                        <p className="text-blue-100 max-w-md mx-auto">Tebak unsur rahasia yang menyala, bertahan 5 ronde, jadilah master!</p>
+                                    </div>
+                                    <div className="flex flex-col space-y-4 w-full max-w-xs">
+                                        <button onClick={() => handleMenuClick(startQuest)} className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 font-bold py-4 rounded-2xl shadow-lg transition border border-white/20">
+                                            <i className="ph-fill ph-play text-2xl"></i><span>Mulai Quest</span>
+                                        </button>
+                                        <button onClick={() => handleMenuClick(()=>setGameState('shop'))} className="w-full flex items-center justify-center space-x-2 bg-white/10 hover:bg-white/20 font-bold py-4 rounded-2xl shadow-lg transition border border-white/20">
+                                            <i className="ph-fill ph-storefront text-2xl"></i><span>Toko Item</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {gameState === 'shop' && (
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-3xl font-bold flex items-center"><i className="ph-fill ph-storefront mr-2"></i> Toko Item</h2>
+                                        <button onClick={() => handleMenuClick(()=>setGameState('menu'))} className="bg-white/10 p-2 rounded-full text-2xl"><i className="ph-fill ph-house"></i></button>
+                                    </div>
+                                    <p className="text-blue-100 bg-white/5 p-4 rounded-xl border border-white/10">Beli power-ups untuk membantumu di Quest!</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <ShopCard k="peek" title="Scanner" desc="Intip unsur yg ditanya." cost={30} icn="ph-magnifying-glass" bg="from-indigo-600 to-indigo-900" />
+                                        <ShopCard k="shield" title="Perisai" desc="Lindungi dari 1 kesalahan." cost={10} icn="ph-shield" bg="from-blue-600 to-blue-900" />
+                                        <ShopCard k="fifty" title="50:50" desc="Hapus 2 pilihan salah." cost={15} icn="ph-lightning" bg="from-yellow-600 to-orange-900" />
+                                        <ShopCard k="booster" title="Booster" desc="Hadiah koin menang x2." cost={25} icn="ph-fire" bg="from-red-600 to-red-900" />
+                                    </div>
+                                </div>
+                            )}
+
+                            {gameState === 'playing' && (
+                                <div className={`space-y-6 ${shake ? 'animate-shake' : ''}`}>
+                                    <div className="flex justify-between items-center bg-white/10 p-3 rounded-xl border border-white/20">
+                                        <div className="font-bold">Ronde <span className="text-blue-300 text-xl">{round}</span> / 5</div>
+                                        <div className="flex space-x-2">
+                                            {[ {k:'peek', i:'ph-magnifying-glass', c:'indigo'}, {k:'shield', i:'ph-shield', c:'blue'}, {k:'fifty', i:'ph-lightning', c:'yellow'}, {k:'booster', i:'ph-fire', c:'red'} ].map(({k, i, c}) => {
+                                                const isDis = inventory[k] <= 0 || (k==='fifty'?options.includes(null):(k==='peek'?effects.peeked:effects[k]));
+                                                const isAct = k!=='fifty' && k!=='peek' && effects[k];
+                                                return (
+                                                    <button key={k} onClick={()=>useItem(k)} disabled={isDis} className={`p-2 rounded-lg border transition relative text-xl ${isAct?`bg-${c}-500 ring-2 ring-white`:inventory[k]>0?`bg-${c}-500/50 hover:bg-${c}-500`:'bg-gray-500/30 opacity-50'}`}>
+                                                        <i className={`ph-fill ${i} text-white`}></i>
+                                                        {inventory[k]>0 && <span className="absolute -top-1 -right-1 bg-red-500 text-[10px] w-4 h-4 rounded-full flex justify-center items-center">{inventory[k]}</span>}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-black/20 p-4 rounded-2xl border border-white/10 overflow-x-auto relative">
+                                        {feedback && (
+                                            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 rounded-2xl">
+                                                <div className={`${feedback==='correct'?'bg-green-500':'bg-red-500'} p-6 rounded-2xl flex flex-col items-center animate-bounce text-5xl`}>
+                                                    <i className={`ph-fill ${feedback==='correct'?'ph-check-circle':'ph-x-circle'}`}></i>
+                                                    <h2 className="text-2xl font-bold mt-2">{feedback==='correct'?'Tepat!':'Salah!'}</h2>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="min-w-[600px] grid grid-cols-18 gap-1 auto-rows-[3rem]">
+                                            {ELEMENTS.map(el => {
+                                                const isT = el.n === targetElement?.n;
+                                                const isH = hiddenElements.some(h => h.n === el.n);
+                                                const isDark = isH && !(isT && effects.peeked);
+                                                return (
+                                                    <div key={el.n} style={{ gridColumn: el.cl, gridRow: el.r }} className={`flex flex-col items-center justify-center rounded-md border border-white/30 transition-all ${isDark?'bg-slate-800 text-white':COLORS[el.c]} ${isT?'ring-4 ring-white animate-pulse z-10 scale-110':'opacity-80'}`}>
+                                                        <span className="text-[10px] absolute top-0.5 left-1 opacity-70">{el.n}</span>
+                                                        <span className="font-bold text-lg">{isH && !(isT && effects.peeked) ? '?' : el.s}</span>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white/10 p-6 rounded-2xl border border-white/20 text-center">
+                                        <h3 className="text-lg font-bold mb-6">Pilih unsur di kotak <span className="bg-white text-slate-900 px-2 rounded animate-pulse">Berdenyut</span></h3>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {options.map((opt, i) => opt ? (
+                                                <button key={opt.n} onClick={()=>handleAnswer(opt)} disabled={!!feedback} className="bg-white/90 text-slate-800 font-bold py-4 rounded-xl active:scale-95 border-b-4 border-slate-300 hover:border-blue-400">
+                                                    <span className="text-2xl block">{opt.s}</span><span className="text-sm opacity-80">{opt.nm}</span>
+                                                </button>
+                                            ) : <div key={i} className="bg-white/5 border border-white/10 rounded-xl h-[88px]"></div>)}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {(gameState === 'gameover' || gameState === 'victory') && (
+                                <div className="text-center space-y-6 py-10">
+                                    <div className={`${gameState==='victory'?'bg-yellow-500':'bg-red-500'}/20 p-6 rounded-full inline-block text-6xl`}>
+                                        <i className={`ph-fill ${gameState==='victory' ? 'ph-medal text-yellow-400' : 'ph-heart text-red-400'}`}></i>
+                                    </div>
+                                    <h2 className="text-4xl font-extrabold">{gameState==='victory'?'Quest Selesai!':'Game Over!'}</h2>
+                                    {gameState==='victory' && <div className="bg-black/30 px-6 py-4 rounded-2xl mx-auto inline-flex items-center space-x-3 text-2xl font-bold text-yellow-400">+{effects.booster?10:5} <i className="ph-fill ph-coin ml-2"></i></div>}
+                                    <div className="flex space-x-4 max-w-xs mx-auto mt-4">
+                                        <button onClick={()=>handleMenuClick(startQuest)} className="flex-1 bg-blue-500 py-3 rounded-xl font-bold">Lagi</button>
+                                        <button onClick={()=>handleMenuClick(()=>setGameState('menu'))} className="flex-1 bg-white/10 py-3 rounded-xl font-bold">Menu</button>
+                                    </div>
+                                </div>
+                            )}
+                        </main>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
